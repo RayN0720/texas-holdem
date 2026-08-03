@@ -120,6 +120,61 @@ class Room {
     }
   }
 
+
+  // 断线宽限期：标记离线但不立即移除，30 秒内重连可恢复
+  handleDisconnect(playerId) {
+    const idx = this.players.findIndex(p => p.id === playerId);
+    if (idx < 0) return;
+    const p = this.players[idx];
+    p.connected = false;
+    this.sockets.delete(playerId);
+    this.broadcast('room_state', this.serializeLobby());
+    clearTimeout(p._disconnectTimer);
+    p._disconnectTimer = setTimeout(() => { this.removePlayer(playerId); }, 30000);
+    if (this.game && this.game.phase !== 'IDLE') {
+      clearTimeout(p._foldTimer);
+      p._foldTimer = setTimeout(() => {
+        const gp = this.game && this.game.players.find(g => g.id === playerId);
+        if (gp && !gp.folded && this.game.whoseTurn === this.game.players.indexOf(gp)) {
+          gp.folded = true; gp.acted = true;
+          this.game.advanceTurn();
+          this.broadcast('state_changed', this.game.serializeState());
+        }
+      }, 10000);
+    }
+  }
+
+  // 重连：用旧 playerId 恢复连接
+  reconnectPlayer(ws, playerId) {
+    const p = this.players.find(p => p.id === playerId);
+    if (!p) return false;
+    clearTimeout(p._disconnectTimer);
+    clearTimeout(p._foldTimer);
+    p.connected = true;
+    ws.id = playerId;
+    this.sockets.set(playerId, ws);
+    this.broadcast('room_state', this.serializeLobby());
+    if (this.game && this.game.phase !== 'IDLE') {
+      const gp = this.game.players.find(g => g.id === playerId);
+      const hostId = this.hostWs ? this.hostWs.id : null;
+      ws.send(JSON.stringify({ type: 'reconnected', playerId, isHost: ws.id === hostId, folded: !!(gp && gp.folded) }));
+      const gs = this.game.serializeState();
+      ws.send(JSON.stringify({ type: 'state_changed', ...gs }));
+      if (gp && gp.hole) {
+        const G = require('./game.js');
+        for (const card of gp.hole) {
+          ws.send(JSON.stringify({ type: 'deal_card', card: G.cardToString(card) }));
+        }
+      }
+      if (gp && this.game.whoseTurn === this.game.players.indexOf(gp)) {
+        this.game.requestAction(this.game.whoseTurn);
+      }
+    } else {
+      ws.send(JSON.stringify({ type: 'reconnected', playerId, isHost: ws.id === (this.hostWs && this.hostWs.id), folded: false }));
+    }
+    return true;
+  }
+
   removePlayer(playerId) {
     const idx = this.players.findIndex(p => p.id === playerId);
     if (idx < 0) return;
@@ -267,7 +322,7 @@ wss.on('connection', (ws) => {
   });
 
   ws.on('close', () => {
-    // remove player from room
+    // 断线宽限期：不立即移除，30 秒内重连可恢复
     for (const room of rooms.values()) {
       if (room.sockets.get(ws.id)) {
         room.removePlayer(ws.id);
@@ -342,6 +397,20 @@ function handleClientMessage(ws, msg) {
       return;
     }
 
+
+    case 'reconnect': {
+      if (!msg.playerId || !msg.roomCode) return;
+      const reRoom = rooms.get(msg.roomCode);
+      if (!reRoom) { ws.send(JSON.stringify({ type: 'error', message: '房间已关闭' })); return; }
+      const restored = reRoom.reconnectPlayer(ws, msg.playerId);
+      if (!restored) {
+        const player = reRoom.addPlayer(ws, msg.name || 'Player');
+        ws.id = player.id;
+        ws.send(JSON.stringify({ type: 'joined', roomCode: reRoom.code, playerId: player.id, isHost: false }));
+      }
+      return;
+    }
+
     case 'ping':
       ws.send(JSON.stringify({ type: 'pong' }));
       return;
@@ -362,7 +431,7 @@ setInterval(() => {
     ws.isAlive = false;
     ws.ping();
   });
-}, 30000);
+}, 15000);
 
 // ─── LAN IP + startup info ──────────────────────────────────────────────
 function lanIPs() {

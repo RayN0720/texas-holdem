@@ -41,16 +41,26 @@ function miniCardHTML(cardStr) {
 }
 
 // ─── Connection ─────────────────────────────────────────────────────────
+// 重连延迟（指数退避：1s→2s→4s→...→最大15s）
+let _reconnectDelay = 1000;
+
 function connect() {
+  // 清除旧的心跳定时器
+  if (state._keepAlive) clearInterval(state._keepAlive);
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   const wsUrl = `${proto}://${location.host}/ws`;
   const ws = new WebSocket(wsUrl);
   state.ws = ws;
 
   ws.onopen = () => {
-    // if we're reconnecting and already in a room, resend join
+    _reconnectDelay = 1000; // 重置退避
     const pendingName = localStorage.getItem('th_name') || '';
-    if (state.roomCode && pendingName) {
+    const savedPlayerId = localStorage.getItem('th_playerId');
+    const savedRoomCode = localStorage.getItem('th_roomCode');
+    // 优先尝试恢复旧连接
+    if (savedPlayerId && savedRoomCode && state.roomCode) {
+      ws.send(JSON.stringify({ type: 'reconnect', roomCode: state.roomCode, playerId: savedPlayerId, name: pendingName }));
+    } else if (state.roomCode && pendingName) {
       ws.send(JSON.stringify({ type: 'join_room', roomCode: state.roomCode, name: pendingName }));
     }
   };
@@ -61,9 +71,17 @@ function connect() {
     handleMessage(msg);
   };
 
+  // 客户端保活：每 12 秒 ping，防止 Cloudflare 隧道空闲断开
+  state._keepAlive = setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping' }));
+  }, 12000);
+
   ws.onclose = () => {
-    toast('连接断开，尝试重连...');
-    setTimeout(connect, 2000);
+    if (_reconnectDelay <= 15000) {
+      toast(`连接断开，${Math.round(_reconnectDelay/1000)}s 后重连...`);
+    }
+    setTimeout(connect, _reconnectDelay);
+    _reconnectDelay = Math.min(_reconnectDelay * 2, 15000);
   };
 }
 
@@ -74,6 +92,8 @@ function handleMessage(msg) {
       state.myId = msg.playerId;
       state.isHost = true;
       state.roomCode = msg.roomCode;
+      localStorage.setItem('th_playerId', msg.playerId);
+      localStorage.setItem('th_roomCode', msg.roomCode);
       enterLobbyRoom();
       break;
 
@@ -81,6 +101,8 @@ function handleMessage(msg) {
       state.myId = msg.playerId;
       state.isHost = false;
       state.roomCode = msg.roomCode;
+      localStorage.setItem('th_playerId', msg.playerId);
+      localStorage.setItem('th_roomCode', msg.roomCode);
       enterLobbyRoom();
       break;
 
@@ -91,6 +113,15 @@ function handleMessage(msg) {
     case 'new_hand':
       state.myCards = [];
       renderMyCards();
+      break;
+
+    case 'reconnected':
+      state.myId = msg.playerId;
+      state.isHost = msg.isHost;
+      if (msg.folded) toast('⚠️ 你已断线超时，系统帮你弃牌了');
+      else toast('✅ 已重新连接');
+      showScreen('game');
+      $('#room-code-tiny').textContent = state.roomCode;
       break;
 
     case 'game_start':
