@@ -348,6 +348,10 @@ function showShowdownModal(pots) {
       </div>`).join('');
     return winners;
   }).join('');
+  // 重置"继续"按钮为初始状态（房主需二次确认才发下一局）
+  const btn = $('#btn-continue');
+  btn.dataset.confirm = '0';
+  btn.textContent = '继续';
   $('#showdown-modal').classList.remove('hidden');
 }
 
@@ -417,10 +421,27 @@ function init() {
   });
 
   $('#btn-continue').onclick = () => {
-    $('#showdown-modal').classList.add('hidden');
-    // wait for host to start next hand, or auto if host
+    // 二次确认：房主第一次点击只改变按钮文字，再次点击（3 秒内）才真正开始下一局，
+    // 避免"点继续→立刻自动连发"导致无休止循环。
     if (state.isHost) {
-      setTimeout(() => send('start_game'), 500);
+      const btn = $('#btn-continue');
+      if (btn.dataset.confirm === '1') {
+        $('#showdown-modal').classList.add('hidden');
+        btn.dataset.confirm = '0';
+        btn.textContent = '继续';
+        send('start_game');
+      } else {
+        btn.dataset.confirm = '1';
+        btn.textContent = '确认开始下一局？';
+        setTimeout(() => {
+          if (btn.dataset.confirm === '1') {
+            btn.dataset.confirm = '0';
+            btn.textContent = '继续';
+          }
+        }, 3000);
+      }
+    } else {
+      $('#showdown-modal').classList.add('hidden');
     }
   };
 

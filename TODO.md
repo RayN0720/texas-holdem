@@ -10,8 +10,8 @@
 
 - [x] **修复翻牌前大盲注加注权（BB option）** ✅ 2026-08-03：大盲在翻牌前保留补行动权（加注/跟注/弃牌），无人加注时可 check 结束下注轮。附带修复 `raise`/`allin` 分支漏设 `acted`。见 CHANGELOG Unreleased
   - 相关：`server/dealer.js` `startBettingRound()` PRE_FLOP 分支、`performAction()` raise/allin
-- [ ] **确认/限制无限记账下的无限加注**：两方都无限 raise 时牌局不收敛。决策：允许但提示，或加单轮下注上限
-- [ ] **全下语义**：无限记账下"allin"按钮无真实意义，需确认是保留还是重构为真实 All-in（与 P1 记账方案相关）
+- [x] **摊牌后自动连发下一局** ✅ 2026-08-03：房主点"继续"改为二次确认（3 秒内再次点击才发牌），防止无限循环。见 CHANGELOG Unreleased
+  - 相关：`public/app.js` `btn-continue`
 - [ ] **确认/限制无限记账下的无限加注**：两方都无限 raise 时牌局不收敛。决策：允许但提示，或加单轮下注上限
 - [ ] **全下语义**：无限记账下"allin"按钮无真实意义，需确认是保留还是重构为真实 All-in（与 P1 记账方案相关）
 
