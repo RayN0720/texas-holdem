@@ -321,10 +321,8 @@ function showActionBar(req) {
   if (canRaise) {
     const slider = $('#raise-slider');
     const min = req.minRaiseTo || req.toCall;
-    // With unlimited debt there's no stack cap; offer a generous range so
-    // players can bet big. Base it on pot + current bet, min 3x minRaise.
-    const pot = state.game?.pot || 0;
-    const cap = Math.max(min * 3, Math.round((pot + req.toCall) * 2) + req.toCall);
+    // 加注上限 = 当前玩家的剩余金币总量（服务端下发）
+    const cap = req.maxRaiseTo || min;
     slider.min = min;
     slider.max = cap;
     slider.value = Math.min(cap, min);

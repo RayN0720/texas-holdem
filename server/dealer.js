@@ -168,11 +168,16 @@ class TexasGame {
     const options = [];
     if (toCall === 0) options.push('check');
     else { options.push('fold'); options.push('call'); }
-    options.push('raise');
-    options.push('allin');
+    // 加注上限 = 玩家剩余筹码 + 本轮已下注额（最大 total bet）
+    const maxRaiseTo = p.stack + p.roundBet;
     // minRaiseTo = minimum TOTAL bet the player may raise to
     const minRaiseTo = this.currentBet + this.lastRaiseSize;
-    this.emit('action_request', { playerId: p.id, options, toCall, minRaiseTo, pot: this.pot });
+    // 只有筹码够最小加注额时才提供 raise/allin 选项
+    if (maxRaiseTo >= minRaiseTo) {
+      options.push('raise');
+      options.push('allin');
+    }
+    this.emit('action_request', { playerId: p.id, options, toCall, minRaiseTo, maxRaiseTo, pot: this.pot });
     this.emit('turn_changed', { playerId: p.id });
   }
 
@@ -223,6 +228,9 @@ class TexasGame {
         }
         // floor: must at least match min-raise
         if (target < minTo) target = minTo;
+        // 加注上限 = 玩家剩余筹码 + 本轮已下注额
+        const maxTo = p.stack + p.roundBet;
+        if (target > maxTo) target = maxTo;
         const add = target - p.roundBet;
         if (add <= 0) return { ok: false, error: 'raise too small' };
         p.stack -= add;
@@ -244,12 +252,10 @@ class TexasGame {
       }
 
       case 'allin': {
-        // With unlimited debt, "all-in" means push everything you still owe
-        // relative to the current bet: match a large raise. This keeps the
-        // button harmless rather than a weird half-cap.
-        const target = Math.max(toCall + this.lastRaiseSize, this.currentBet + this.lastRaiseSize);
+        // 全下 = 押上所有剩余筹码
+        const target = p.stack + p.roundBet;
         const add = target - p.roundBet;
-        if (add <= 0) return { ok: false, error: 'raise too small' };
+        if (add <= 0) return { ok: false, error: 'nothing to push' };
         p.stack -= add;
         p.roundBet = target;
         p.totalBet += add;
