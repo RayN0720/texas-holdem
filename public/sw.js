@@ -1,4 +1,4 @@
-const CACHE = 'texas-holdem-v2';
+const CACHE = 'texas-holdem-v3';
 const ASSETS = [
   './',
   './index.html',
