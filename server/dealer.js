@@ -137,14 +137,17 @@ class TexasGame {
     this.currentBet = 0;
     this.lastRaiseSize = this.bigBlind;
 
-    // Pre-flop: restore blinds' contributions as the current bet
+    // Pre-flop: restore blinds' contributions as the current bet.
+    // SB counts as acted (posts before acting), but BB keeps the option:
+    // when action returns to BB unraised, BB may check or raise (BB option).
+    // Marking BB acted here caused bets-even -> immediate flop, no BB raise.
     if (this.phase === 'PRE_FLOP') {
       const sbIdx = this.nextPlayable(this.dealerIdx);
       const bbIdx = this.nextPlayable(sbIdx);
       if (sbIdx >= 0) { this.players[sbIdx].roundBet = prevRound[sbIdx]; this.players[sbIdx].acted = true; }
       if (bbIdx >= 0) {
         this.players[bbIdx].roundBet = prevRound[bbIdx];
-        this.players[bbIdx].acted = true;
+        this.players[bbIdx].acted = false; // 大盲保留翻牌前加注权
         this.currentBet = Math.max(this.currentBet, prevRound[bbIdx]);
       }
       this.lastRaiseSize = this.bigBlind;
@@ -225,6 +228,7 @@ class TexasGame {
         p.stack -= add;
         p.roundBet = target;
         p.totalBet += add;
+        p.acted = true; // 加注者已完成行动
         // Only a full raise reopens betting
         if (target > this.currentBet) {
           const prevBet = this.currentBet;
@@ -249,6 +253,7 @@ class TexasGame {
         p.stack -= add;
         p.roundBet = target;
         p.totalBet += add;
+        p.acted = true; // 全下者也已完成行动
         if (target > this.currentBet) {
           const prevBet = this.currentBet;
           this.currentBet = target;

@@ -305,3 +305,98 @@ describe('玩家动作与轮次', () => {
     }
   });
 });
+
+// ─── P1：翻牌前大盲注加注权（BB option）─────────────────────────────────
+describe('翻牌前大盲注加注权（BB option）', () => {
+  // 动态定位 SB/BB（首手庄家随机）
+  function blindIdx(game) {
+    const sbIdx = game.nextPlayable(game.dealerIdx);
+    const bbIdx = game.nextPlayable(sbIdx);
+    return { sbIdx, bbIdx };
+  }
+
+  test('无人加注时，大盲在翻牌前获得补行动机会（check 结束翻牌前）', () => {
+    const p1 = createPlayer('p1', 'A', false, 1000);
+    const p2 = createPlayer('p2', 'B', false, 1000);
+    const game = makeGame([p1, p2]);
+    game.startHand();
+    const { sbIdx, bbIdx } = blindIdx(game);
+    const bbId = game.players[bbIdx].id;
+    const sbId = game.players[sbIdx].id;
+    // heads-up：第一个行动者是小盲（大盲左方）
+    game.performAction(sbId, 'call', 0);
+    assert.strictEqual(game.phase, 'PRE_FLOP', '仍在翻牌前');
+    assert.strictEqual(game.whoseTurn, bbIdx, '大盲应获得翻牌前补行动机会');
+    // 大盲 check 结束翻牌前
+    game.performAction(bbId, 'check', 0);
+    assert.strictEqual(game.phase, 'FLOP', '大盲 check 后应发翻牌');
+    assert.strictEqual(game.community.length, 3);
+  });
+
+  test('大盲可以在翻牌前加注并重开行动', () => {
+    const p1 = createPlayer('p1', 'A', false, 1000);
+    const p2 = createPlayer('p2', 'B', false, 1000);
+    const game = makeGame([p1, p2]);
+    game.startHand();
+    const { sbIdx, bbIdx } = blindIdx(game);
+    const bbId = game.players[bbIdx].id;
+    const sbId = game.players[sbIdx].id;
+    // SB call → BB raise（BB option）
+    game.performAction(sbId, 'call', 0);
+    const res = game.performAction(bbId, 'raise', 100);
+    assert.ok(res.ok, '大盲加注应成功');
+    assert.strictEqual(game.currentBet, 100, 'currentBet 应更新为大盲加注后的金额');
+    // 加注后应重开行动：SB 重新获得行动权
+    assert.strictEqual(game.whoseTurn, sbIdx, '加注后应回到 SB 行动');
+    // SB 再 call 后结束
+    game.performAction(sbId, 'call', 0);
+    assert.strictEqual(game.phase, 'FLOP', '大盲加注被跟注后应翻牌');
+  });
+
+  test('多人：大盲在其他人行动后才有加注机会', () => {
+    const ps = [0, 1, 2, 3, 4, 5].map(i => createPlayer('p' + i, 'P' + i, false, 1000));
+    const game = makeGame(ps);
+    game.startHand();
+    const { bbIdx } = blindIdx(game);
+    const bbId = game.players[bbIdx].id;
+    // 翻牌前所有人跟注（盲注已投，UTG 起依次 call）
+    const order = [];
+    let guard = 0;
+    while (game.phase === 'PRE_FLOP' && guard++ < 20) {
+      const idx = game.whoseTurn;
+      if (idx < 0) break;
+      order.push(game.players[idx].id);
+      const r = game.performAction(game.players[idx].id, 'call', 0);
+      if (!r.ok) { const r2 = game.performAction(game.players[idx].id, 'check', 0); if (!r2.ok) break; }
+    }
+    // 行动应含 BB，且出现在最后
+    assert.ok(order.includes(bbId), '大盲应获得翻牌前行动机会');
+    assert.strictEqual(order[order.length - 1], bbId, '大盲应是翻牌前最后行动者');
+    assert.strictEqual(game.phase, 'FLOP', '大盲 call 后应翻牌');
+  });
+
+  test('大盲加注后轮次正常结束（重开行动不破坏轮次完成）', () => {
+    const ps = [0, 1, 2].map(i => createPlayer('p' + i, 'P' + i, false, 1000));
+    const game = makeGame(ps);
+    game.startHand();
+    const { sbIdx, bbIdx } = blindIdx(game);
+    const utgIdx = game.nextPlayable(bbIdx);
+    const bbId = game.players[bbIdx].id;
+    const sbId = game.players[sbIdx].id;
+    const utgId = game.players[utgIdx].id;
+    // UTG call → SB call → BB 拥有 BB option
+    game.performAction(utgId, 'call', 0);
+    game.performAction(sbId, 'call', 0);
+    assert.strictEqual(game.whoseTurn, bbIdx, 'BB 应获得补行动机会');
+    const res = game.performAction(bbId, 'raise', 100);
+    assert.ok(res.ok, 'BB 加注成功');
+    assert.strictEqual(game.whoseTurn, utgIdx, '加注后回到第一个未全下玩家');
+    // BB 加注应重开下注：其他玩家 acted 被重置
+    assert.strictEqual(game.players[utgIdx].acted, false, 'UTG 应重新获得行动权');
+    assert.strictEqual(game.players[sbIdx].acted, false, 'SB 应重新获得行动权');
+    // UTG call → SB call 后，BB 已行动且下注额一致，轮次应直接翻牌
+    game.performAction(utgId, 'call', 0);
+    game.performAction(sbId, 'call', 0);
+    assert.strictEqual(game.phase, 'FLOP', '全部行动后翻牌');
+  });
+});
