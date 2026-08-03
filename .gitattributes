@@ -1,0 +1,2 @@
+# Windows 批处理脚本必须使用 CRLF 行尾，否则 cmd 解析异常
+*.bat text eol=crlf
