@@ -1,9 +1,9 @@
-const CACHE = 'texas-holdem-v3';
+const CACHE = 'texas-holdem-v4';
 const ASSETS = [
   './',
   './index.html',
-  './style.css',
-  './app.js',
+  './style.css?v=4',
+  './app.js?v=4',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
