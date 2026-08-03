@@ -52,6 +52,7 @@
       <span id="room-code-tiny"></span>
       <span id="pot-display">底池: 0</span>
       <span id="phase-display">等待开始</span>
+      <button id="btn-rules" class="btn-rules">📖 规则</button>
     </div>
 
     <div id="table" class="table">
@@ -97,6 +98,29 @@
       <h2>摊牌</h2>
       <div id="showdown-results"></div>
       <button id="btn-continue" class="primary">继续</button>
+    </div>
+  </div>
+  <!-- 规则弹窗 -->
+  <div id="rules-modal" class="modal hidden">
+    <div class="modal-card rules-modal-card">
+      <h2>📖 牌型规则</h2>
+      <div class="rules-content">
+        <p class="rules-intro">每人 2 张底牌 + 5 张公共牌，从 7 张中选出<strong>最佳 5 张</strong>比大小。牌点：<strong>A &gt; K &gt; Q &gt; J &gt; T &gt; 9 ... 2</strong></p>
+        <div class="hand-list">
+          <div class="hand-row"><div class="hand-rank">1</div><div class="hand-info"><div class="hand-name">皇家同花顺 <span class="hand-en">Royal Flush</span></div><div class="hand-cards"><span class="hc red">A♠ K♠ Q♠ J♠ T♠</span></div><div class="hand-desc">同花色的 A-K-Q-J-T，最大牌型</div></div></div>
+          <div class="hand-row"><div class="hand-rank">2</div><div class="hand-info"><div class="hand-name">同花顺 <span class="hand-en">Straight Flush</span></div><div class="hand-cards"><span class="hc red">9♥ 8♥ 7♥ 6♥ 5♥</span></div><div class="hand-desc">同花色 + 连续五张，如 9-high 同花顺</div></div></div>
+          <div class="hand-row"><div class="hand-rank">3</div><div class="hand-info"><div class="hand-name">四条 <span class="hand-en">Four of a Kind</span></div><div class="hand-cards"><span class="hc">K♣ K♦ K♥ K♠ 3♠</span></div><div class="hand-desc">四张同点数 + 一张 kicker，四条 K 胜四条 Q</div></div></div>
+          <div class="hand-row"><div class="hand-rank">4</div><div class="hand-info"><div class="hand-name">葫芦 <span class="hand-en">Full House</span></div><div class="hand-cards"><span class="hc">Q♠ Q♦ Q♣ 7♥ 7♠</span></div><div class="hand-desc">三条 + 一对，先比三条大小，再比对子</div></div></div>
+          <div class="hand-row"><div class="hand-rank">5</div><div class="hand-info"><div class="hand-name">同花 <span class="hand-en">Flush</span></div><div class="hand-cards"><span class="hc red">A♦ J♦ 8♦ 5♦ 3♦</span></div><div class="hand-desc">同花色五张，不连续。从高到低逐张比较</div></div></div>
+          <div class="hand-row"><div class="hand-rank">6</div><div class="hand-info"><div class="hand-name">顺子 <span class="hand-en">Straight</span></div><div class="hand-cards"><span class="hc">J♠ T♥ 9♦ 8♣ 7♠</span></div><div class="hand-desc">五张连续点数，花色不限。A 可作 5 (A-2-3-4-5)</div></div></div>
+          <div class="hand-row"><div class="hand-rank">7</div><div class="hand-info"><div class="hand-name">三条 <span class="hand-en">Three of a Kind</span></div><div class="hand-cards"><span class="hc">8♠ 8♥ 8♦ K♣ 2♠</span></div><div class="hand-desc">三张同点数 + 两张散牌，先比三条再比踢脚</div></div></div>
+          <div class="hand-row"><div class="hand-rank">8</div><div class="hand-info"><div class="hand-name">两对 <span class="hand-en">Two Pair</span></div><div class="hand-cards"><span class="hc">A♠ A♦ 9♣ 9♥ 4♠</span></div><div class="hand-desc">两个对子 + 一张散牌，先比大对再比小对</div></div></div>
+          <div class="hand-row"><div class="hand-rank">9</div><div class="hand-info"><div class="hand-name">一对 <span class="hand-en">One Pair</span></div><div class="hand-cards"><span class="hc">Q♠ Q♥ A♦ 7♣ 3♠</span></div><div class="hand-desc">一个对子 + 三张散牌，比对子再比踢脚</div></div></div>
+          <div class="hand-row"><div class="hand-rank">10</div><div class="hand-info"><div class="hand-name">高牌 <span class="hand-en">High Card</span></div><div class="hand-cards"><span class="hc">A♠ K♦ 9♥ 5♣ 2♠</span></div><div class="hand-desc">无任何牌型，从高到低逐张比较</div></div></div>
+        </div>
+        <p class="rules-tip">⚖️ 牌型相同时比较牌点；完全相同时<strong>平局分池</strong>（chop）。A 在顺子中既可作最大 (A-K-Q-J-T) 也可作最小 (A-2-3-4-5)。</p>
+      </div>
+      <button id="btn-close-rules" class="primary">知道了</button>
     </div>
   </div>
 

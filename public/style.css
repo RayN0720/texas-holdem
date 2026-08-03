@@ -322,3 +322,96 @@ button:disabled { opacity: 0.5; }
   .my-cards .big-card { width: 54px; height: 78px; }
   .player-tile { min-width: 56px; }
 }
+
+/* ─── Rules modal ──────────────────────────────────────────────────── */
+.btn-rules {
+  background: rgba(255,255,255,0.12);
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  border: none;
+  color: #fff;
+}
+.btn-rules:active { background: rgba(255,255,255,0.25); }
+
+.rules-modal-card {
+  max-width: 480px;
+  max-height: 85dvh;
+  overflow-y: auto;
+  text-align: left;
+}
+.rules-content {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.rules-intro {
+  color: #bdd;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.rules-intro strong { color: #ffd45e; }
+
+.hand-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.hand-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.hand-rank {
+  width: 26px; height: 26px;
+  background: #2e8b57;
+  color: #fff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px;
+  flex-shrink: 0;
+}
+.hand-rank.royal { background: #e6a817; }
+.hand-info { flex: 1; min-width: 0; }
+.hand-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+}
+.hand-en {
+  font-size: 11px;
+  color: #7a9a85;
+  font-weight: 400;
+  margin-left: 4px;
+}
+.hand-cards {
+  margin: 2px 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  word-break: break-all;
+}
+.hand-cards .hc { }
+.hand-desc {
+  font-size: 11px;
+  color: #8fbf9f;
+}
+.rules-tip {
+  color: #7a9a85;
+  font-size: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.rules-tip strong { color: #ffd45e; }
+
+#btn-close-rules {
+  width: 100%;
+  margin-top: 12px;
+}

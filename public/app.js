@@ -450,6 +450,19 @@ function init() {
     }
   };
 
+
+  // 规则弹窗
+  const btnRules = $('#btn-rules');
+  if (btnRules) {
+    btnRules.onclick = () => $('#rules-modal').classList.remove('hidden');
+  }
+  const btnCloseRules = $('#btn-close-rules');
+  if (btnCloseRules) {
+    btnCloseRules.onclick = () => $('#rules-modal').classList.add('hidden');
+  }
+  $('#rules-modal').onclick = (e) => {
+    if (e.target === $('#rules-modal')) $('#rules-modal').classList.add('hidden');
+  };
   // register service worker for offline/PWA install
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW failed:', err));
