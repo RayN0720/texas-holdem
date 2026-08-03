@@ -88,6 +88,11 @@ function handleMessage(msg) {
       renderLobby(msg);
       break;
 
+    case 'new_hand':
+      state.myCards = [];
+      renderMyCards();
+      break;
+
     case 'game_start':
       state.game = { phase: 'IDLE', players: msg.players, community: [], pot: 0 };
       state.myCards = [];

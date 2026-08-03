@@ -169,6 +169,7 @@ class Room {
 
   startHand() {
     if (!this.game) return;
+    this.broadcast('new_hand', {});
     this.game.startHand();
   }
 
