@@ -128,7 +128,11 @@ class Room {
     // reassign seats
     this.players.forEach((p, i) => p.seat = i);
     this.broadcast('room_state', this.serializeLobby());
-    if (this.game && this.game.phase !== 'IDLE') {
+    if (this.game && this.game.phase === 'IDLE') {
+      // 空闲时离开：从游戏玩家列表移除
+      const gIdx = this.game.players.findIndex(p => p.id === playerId);
+      if (gIdx >= 0) this.game.players.splice(gIdx, 1);
+    } else if (this.game && this.game.phase !== 'IDLE') {
       // player left mid-hand: treat as fold
       const gp = this.game.players.find(p => p.id === playerId);
       if (gp) {
@@ -156,14 +160,16 @@ class Room {
         onEvent: (e) => this.handleGameEvent(e),
       });
 
-      this.broadcast('game_start', {
-        smallBlind: this.options.smallBlind,
-        bigBlind: this.options.bigBlind,
-        buyIn: this.options.buyIn,
-        players: gamePlayers.map(p => ({ id: p.id, name: p.name, isAI: p.isAI, stack: p.stack, seat: p.seat })),
-      });
     }
-    // start (or continue) a hand
+
+    // 每局开始前广播筹码（新房间=1000，续局=上局结果）
+    this.broadcast('game_start', {
+      smallBlind: this.options.smallBlind,
+      bigBlind: this.options.bigBlind,
+      buyIn: this.options.buyIn,
+      players: this.game.players.map(p => ({ id: p.id, name: p.name, isAI: p.isAI, stack: p.stack, seat: p.seat })),
+    });
+
     this.startHand();
   }
 
@@ -200,6 +206,11 @@ class Room {
         // broadcast everything else (community, blind, pot, phase, showdown, hand_ended)
         this.broadcast(e.type, e);
         if (e.type === 'hand_ended') {
+          // 将游戏筹码同步回房间玩家
+          for (const gp of this.game.players) {
+            const rp = this.players.find(p => p.id === gp.id);
+            if (rp) rp.stack = gp.stack;
+          }
           this.broadcast('state_changed', this.game.serializeState());
         }
         break;
