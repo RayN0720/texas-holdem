@@ -1,0 +1,54 @@
+# ─── Node.js ───────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ─── 构建产物 / 缓存 ───────────────────────────────────────────────────
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.cache/
+*.min.js.map
+
+# ─── 环境变量 / 密钥 / 配置 ─────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+secrets.*
+config.private.*
+
+# ─── 本地运行文件 / 临时文件 ────────────────────────────────────────────
+*.log
+th_tunnel_url.txt*
+/tmp/
+temp/
+*.tmp
+.DS_Store
+Thumbs.db
+
+# ─── IDE / 编辑器配置 ──────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# ─── 本地数据库 / 数据 ─────────────────────────────────────────────────
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+data/
+*.local.json
+
+# ─── 测试临时产物 ──────────────────────────────────────────────────────
+*.test-output/
+wstest.js
+debt-test.js

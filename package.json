@@ -1,0 +1,20 @@
+{
+  "name": "texas-holdem",
+  "version": "0.1.0",
+  "description": "Multiplayer No-Limit Texas Hold'em PWA - play with friends on any network via Cloudflare tunnel",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "test": "node --test test/*.test.js",
+    "test:game": "node --test test/game.test.js",
+    "check": "node --check server/server.js && node --check server/dealer.js && node --check server/game.js && node --check server/ai.js && node --check public/app.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "license": "MIT"
+}

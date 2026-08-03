@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1a4a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <title>德州扑克</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Lobby screen -->
+  <div id="lobby-screen" class="screen active">
+    <div class="lobby-card">
+      <div class="logo">🂡</div>
+      <h1>德州扑克</h1>
+      <p class="subtitle">No-Limit Texas Hold'em</p>
+
+      <div id="lobby-home">
+        <input id="name-input" type="text" placeholder="输入你的昵称" maxlength="12" autocomplete="off">
+        <button id="btn-create" class="primary">创建房间</button>
+        <div class="divider"><span>或加入房间</span></div>
+        <div class="join-row">
+          <input id="room-code-input" type="text" placeholder="房间码" maxlength="4" autocomplete="off">
+          <button id="btn-join" class="secondary">加入</button>
+        </div>
+        <p id="lobby-error" class="error-text"></p>
+      </div>
+
+      <div id="lobby-room" class="hidden">
+        <div class="room-header">
+          <h2>房间 <span id="room-code" class="code-chip"></span></h2>
+          <span class="conn-info" id="conn-info"></span>
+        </div>
+        <div id="player-list" class="player-list"></div>
+        <div class="lobby-actions">
+          <button id="btn-add-ai" class="secondary">添加 AI</button>
+          <button id="btn-start" class="primary">开始游戏</button>
+        </div>
+        <p class="hint">把房间码告诉朋友，让他们输入后加入</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game screen -->
+  <div id="game-screen" class="screen">
+    <div class="topbar">
+      <span id="room-code-tiny"></span>
+      <span id="pot-display">底池: 0</span>
+      <span id="phase-display">等待开始</span>
+    </div>
+
+    <div id="table" class="table">
+      <div id="community" class="community">
+        <div class="card-slot" data-i="0"></div>
+        <div class="card-slot" data-i="1"></div>
+        <div class="card-slot" data-i="2"></div>
+        <div class="card-slot" data-i="3"></div>
+        <div class="card-slot" data-i="4"></div>
+      </div>
+      <div id="table-info" class="table-info">
+        <span id="dealer-indicator"></span>
+        <span id="status-text"></span>
+      </div>
+    </div>
+
+    <div id="players-row" class="players-row"></div>
+
+    <div id="my-area" class="my-area">
+      <div class="my-cards" id="my-cards"></div>
+      <div id="my-info" class="my-info"></div>
+    </div>
+
+    <div id="action-bar" class="action-bar hidden">
+      <div class="action-row">
+        <button id="act-fold" class="act-btn fold" data-act="fold">弃牌</button>
+        <button id="act-check" class="act-btn check" data-act="check">过牌</button>
+        <button id="act-call" class="act-btn call" data-act="call">跟注 <span id="call-amount"></span></button>
+        <button id="act-allin" class="act-btn allin" data-act="allin">全压</button>
+      </div>
+      <div class="action-row raise-row hidden" id="raise-row">
+        <input type="range" id="raise-slider" min="0" max="100" value="50">
+        <span id="raise-amount"></span>
+        <button id="act-raise" class="act-btn raise" data-act="raise">加注</button>
+      </div>
+    </div>
+
+    <div id="toast-container"></div>
+  </div>
+
+  <div id="showdown-modal" class="modal hidden">
+    <div class="modal-card">
+      <h2>摊牌</h2>
+      <div id="showdown-results"></div>
+      <button id="btn-continue" class="primary">继续</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
